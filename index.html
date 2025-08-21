@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Mobile viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+    <!-- Charset -->
+    <meta charset="UTF-8" />
+
+    <!-- Page title -->
+    <title>Baby Panda Dancing 🐼✨</title>
+
+    <!-- Description (for SEO & social sharing) -->
+    <meta
+      name="description"
+      content="Watch a cute baby panda dance and play! Tap for confetti blasts and enjoy interactive fun."
+    />
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#2e236c" />
+    <style>
+      :root {
+        --bg1: #18122b;
+        --bg2: #2e236c;
+        --bg3: #433d8b;
+        --bg4: #c8acd6;
+        --accent: #ff77e1;
+        --accent2: #77ffd9;
+        --accent3: #ffd677;
+        --white: #fff;
+        --shadow: rgba(0, 0, 0, 0.25);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--white);
+        overflow: hidden;
+        background: radial-gradient(1200px 800px at 10% 10%, var(--bg4), transparent 60%),
+          radial-gradient(1000px 700px at 90% 20%, #7a5af8, transparent 60%),
+          radial-gradient(900px 900px at 30% 90%, #00c2a8, transparent 60%),
+          linear-gradient(135deg, var(--bg1), var(--bg2) 50%, var(--bg3));
+        background-size: 200% 200%;
+        animation: bgPulse 10s ease-in-out infinite;
+      }
+
+      .blink-overlay {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 60%);
+        mix-blend-mode: screen;
+        opacity: 0;
+        animation: blink 6s ease-in-out infinite;
+      }
+
+      .stars {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .stage {
+        position: relative;
+        height: 100%;
+        display: grid;
+        place-items: center;
+      }
+
+      .card {
+        position: relative;
+        width: min(92vw, 900px);
+        aspect-ratio: 16/9;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 40px var(--shadow);
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        isolation: isolate;
+      }
+
+      /* Mobile screens: make card full height */
+      @media (max-width: 768px) {
+        .card {
+          height: -webkit-fill-available; /* for iOS Safari */
+          height: 100vh; /* fallback for other browsers */
+          aspect-ratio: auto; /* let height override aspect-ratio */
+        }
+      }
+
+      .panda-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        transform-origin: center;
+        animation: dance 3s infinite;
+      }
+
+      .bubble {
+        position: absolute;
+        top: 12%;
+        left: 58%;
+        transform: translate(-50%, -50%) rotate(-2deg);
+        background: linear-gradient(180deg, #ffffffee, #ffffffcc);
+        color: #1e1e1e;
+        padding: 14px 22px;
+        border-radius: 18px;
+        font-weight: 800;
+        font-size: clamp(18px, 3.5vw, 34px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        animation: pop 1.8s ease-out infinite;
+      }
+      .bubble:after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 24px;
+        width: 18px;
+        height: 18px;
+        background: inherit;
+        transform: rotate(45deg);
+      }
+      .bubble .hello {
+        display: inline-block;
+        animation: glow 3s ease-in-out infinite;
+      }
+
+      .cta {
+        position: absolute;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: none;
+        padding: 12px 18px;
+        border-radius: 999px;
+        font-weight: 700;
+        cursor: pointer;
+        background: radial-gradient(circle at 30% 30%, var(--accent), #8a63f4);
+        color: white;
+        box-shadow: 0 6px 18px rgba(138, 99, 244, 0.5);
+        transition: transform 0.15s ease;
+      }
+      .cta:hover {
+        transform: translateX(-50%) scale(1.05);
+      }
+
+      svg {
+        width: min(60vmin, 420px);
+        height: auto;
+        display: block;
+      }
+
+      .eye {
+        transform-origin: center;
+        animation: eyeBlink 5s infinite;
+      }
+      .paw {
+        transform-origin: 290px 230px;
+        animation: wave 2.2s ease-in-out infinite;
+      }
+
+      .confetti {
+        position: fixed;
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        will-change: transform, opacity;
+        pointer-events: none;
+      }
+      @keyframes fall {
+        to {
+          transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+          opacity: 0;
+        }
+      }
+
+      .spark {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        will-change: transform, opacity;
+        pointer-events: none;
+      }
+      @keyframes boom {
+        to {
+          transform: translate(var(--tx), var(--ty)) scale(0.8);
+          opacity: 0;
+        }
+      }
+
+      .bubble-float {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(1px);
+        opacity: 0.5;
+        animation: floatUp var(--dur) linear infinite;
+      }
+
+      @keyframes bgPulse {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      @keyframes blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0;
+        }
+        85% {
+          opacity: 0.25;
+        }
+        90% {
+          opacity: 0.12;
+        }
+        95% {
+          opacity: 0.2;
+        }
+      }
+      @keyframes eyeBlink {
+        0%,
+        92%,
+        100% {
+          transform: scaleY(1);
+        }
+        95% {
+          transform: scaleY(0.08);
+        }
+        98% {
+          transform: scaleY(1);
+        }
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(-12deg);
+        }
+      }
+      @keyframes pop {
+        0% {
+          transform: translate(-50%, -50%) scale(0.8) rotate(-4deg);
+        }
+        40% {
+          transform: translate(-50%, -50%) scale(1) rotate(-2deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(0.98) rotate(-2deg);
+        }
+      }
+      @keyframes glow {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+        }
+        50% {
+          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+        }
+      }
+      @keyframes floatUp {
+        from {
+          transform: translateY(0) scale(1);
+        }
+        to {
+          transform: translateY(-120vh) scale(1.3);
+        }
+      }
+      @keyframes dance {
+        0% {
+          transform: translateX(0) rotate(0);
+        }
+        20% {
+          transform: translateX(-20px) rotate(-5deg);
+        }
+        40% {
+          transform: translateX(20px) rotate(5deg);
+        }
+        60% {
+          transform: translateX(-15px) rotate(-5deg);
+        }
+        80% {
+          transform: translateX(15px) rotate(5deg);
+        }
+        100% {
+          transform: translateX(0) rotate(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0s !important;
+        }
+        .blink-overlay {
+          display: none;
+        }
+      }
+      /* Make the button lay out icon + text nicely */
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Heart icon + animation */
+      .cta .heart {
+        width: 18px;
+        height: 18px;
+        /* fill: var(--accent); uses your existing accent color */
+        fill: #ff0000; /* 🔴 Bright red */
+        transform-origin: center;
+        animation: heart-beat 1.1s ease-in-out infinite;
+      }
+
+      /* Cute beat */
+      @keyframes heart-beat {
+        0%,
+        20%,
+        60%,
+        100% {
+          transform: scale(1);
+        }
+        40%,
+        80% {
+          transform: scale(1.95);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blink-overlay"></div>
+    <div class="stars" id="stars"></div>
+
+    <div class="stage">
+      <div class="card">
+        <div id="floaters"></div>
+        <div class="panda-wrap">
+          <div class="bubble"><span class="hello">Hello! 👋</span></div>
+          <svg viewBox="0 0 400 400">
+            <ellipse cx="200" cy="340" rx="120" ry="20" fill="rgba(0,0,0,.25)" />
+            <circle cx="120" cy="96" r="42" fill="#222" />
+            <circle cx="280" cy="96" r="42" fill="#222" />
+            <circle cx="200" cy="170" r="110" fill="#fff" stroke="#222" stroke-width="4" />
+            <ellipse cx="150" cy="170" rx="40" ry="48" fill="#222" />
+            <ellipse cx="250" cy="170" rx="40" ry="48" fill="#222" />
+            <g class="eye">
+              <circle cx="150" cy="170" r="10" fill="#fff" />
+              <circle cx="150" cy="170" r="5" fill="#000" />
+            </g>
+            <g class="eye">
+              <circle cx="250" cy="170" r="10" fill="#fff" />
+              <circle cx="250" cy="170" r="5" fill="#000" />
+            </g>
+            <path d="M195 195 q5 -8 10 0" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round" />
+            <path d="M180 210 q20 24 40 0" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round" />
+            <ellipse cx="200" cy="270" rx="120" ry="90" fill="#fff" stroke="#222" stroke-width="4" />
+            <ellipse cx="115" cy="250" rx="38" ry="60" fill="#222" />
+            <g class="paw">
+              <ellipse cx="285" cy="250" rx="38" ry="60" fill="#222" />
+              <circle cx="295" cy="235" r="8" fill="#ffbfd9" />
+              <circle cx="300" cy="255" r="6" fill="#ffbfd9" />
+              <circle cx="275" cy="245" r="6" fill="#ffbfd9" />
+            </g>
+            <path d="M200 255 c-14 -22 -50 2 -28 26 l28 24 l28 -24 c22 -24 -14 -48 -28 -26z" fill="#FF77E1" />
+            <ellipse cx="150" cy="330" rx="32" ry="22" fill="#222" />
+            <ellipse cx="250" cy="330" rx="32" ry="22" fill="#222" />
+          </svg>
+        </div>
+        <!-- <button class="cta" id="blastBtn">Tap for a BLAST ✨</button> -->
+        <button class="cta" id="blastBtn">
+          <span>Tap for a BLAST</span>
+          <svg class="heart" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6.02 4.02 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.09 4.81 13.76 4 15.5 4 17.98 4 20 6.02 20 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const rand = (min, max) => Math.random() * (max - min) + min;
+      const colors = ["#FF77E1", "#77FFD9", "#FFD677", "#7A5AF8", "#00C2A8", "#FF8A5B", "#9AE6B4"];
+
+      function confettiBlast(x, y, count = 90) {
+        for (let i = 0; i < count; i++) {
+          const piece = document.createElement("div");
+          piece.className = "confetti";
+          piece.style.background = colors[(Math.random() * colors.length) | 0];
+          piece.style.left = x + "px";
+          piece.style.top = y + "px";
+          const angle = rand(0, Math.PI * 2);
+          const speed = rand(60, 180);
+          const dx = Math.cos(angle) * speed;
+          const dy = Math.sin(angle) * speed + 400;
+          piece.style.setProperty("--tx", dx + "px");
+          piece.style.setProperty("--ty", dy + "px");
+          piece.style.setProperty("--rot", rand(-540, 540) + "deg");
+          piece.style.transform = "translate(-50%,-50%)";
+          piece.style.opacity = "1";
+          piece.style.animation = `fall ${rand(1.8, 3.2)}s ease-out forwards`;
+          document.body.appendChild(piece);
+          setTimeout(() => piece.remove(), 3400);
+        }
+        firework(x, y);
+      }
+
+      function firework(x, y) {
+        const particles = 28;
+        for (let i = 0; i < particles; i++) {
+          const s = document.createElement("div");
+          s.className = "spark";
+          s.style.left = x + "px";
+          s.style.top = y + "px";
+          s.style.background = colors[(Math.random() * colors.length) | 0];
+          const angle = (i / particles) * Math.PI * 2;
+          const dist = rand(80, 160);
+          const dx = Math.cos(angle) * dist;
+          const dy = Math.sin(angle) * dist;
+          s.style.setProperty("--tx", dx + "px");
+          s.style.setProperty("--ty", dy + "px");
+          s.style.transform = "translate(-50%,-50%)";
+          s.style.opacity = "1";
+          s.style.animation = `boom ${rand(0.9, 1.6)}s ease-out forwards`;
+          document.body.appendChild(s);
+          setTimeout(() => s.remove(), 2000);
+        }
+      }
+
+      function changePandaReplyText() {
+        // 🐼 Panda replies in bubble
+        const reply = "Hi Cutie 💖";
+        const bubble = document.querySelector(".bubble");
+        if (bubble) {
+          bubble.innerText = reply;
+          setTimeout(() => {
+            bubble.innerText = "Hello! 👋"; // reset after 3s
+          }, 3000);
+        }
+      }
+
+      // // 🎤 --- Voice Recognition for "hello"
+      // window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      // if (window.SpeechRecognition) {
+      //   const recognition = new SpeechRecognition();
+      //   recognition.continuous = true;
+      //   recognition.lang = "en-US";
+      //   recognition.interimResults = false;
+
+      //   recognition.onresult = (event) => {
+      //     const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+      //     console.log("Heard:", transcript);
+
+      //     if (transcript.includes("hello")) {
+      //       // 🎉 Blast all over the screen
+      //       for (let i = 0; i < 8; i++) {
+      //         const x = rand(100, window.innerWidth - 100);
+      //         const y = rand(100, window.innerHeight - 100);
+      //         confettiBlast(x, y, 60);
+      //       }
+
+      //       // 🐼 Panda replies in bubble
+      //       const reply = "Hi Cutie";
+      //       const bubble = document.querySelector(".bubble");
+      //       if (bubble) {
+      //         bubble.innerText = reply;
+      //         setTimeout(() => {
+      //           bubble.innerText = "Hello! 👋"; // reset after 3s
+      //         }, 3000);
+      //       }
+
+      //       // 🎙️ Panda speaks with child-like voice
+      //       const utterance = new SpeechSynthesisUtterance(reply);
+      //       utterance.pitch = 2; // higher pitch → babyish
+      //       utterance.rate = 0.7; // slightly faster → playful
+      //       utterance.volume = 1;
+      //       utterance.lang = "en-US";
+
+      //       const voices = speechSynthesis.getVoices()||;
+      //       console.log("Available voices:", voices);
+
+      //       if (voices.length > 0) {
+      //         const babyVoice = voices.find(
+      //           (v) =>
+      //             v.name.toLowerCase().includes("child") ||
+      //             v.name.toLowerCase().includes("girl") ||
+      //             v.name.toLowerCase().includes("female")
+      //         );
+      //         if (babyVoice) {
+      //           utterance.voice = babyVoice;
+      //         } else {
+      //           console.error("No suitable child-like voice found, using default.");
+      //         }
+      //       } else {
+      //         console.error("No voices available for speech synthesis.");
+      //       }
+
+      //       speechSynthesis.speak(utterance);
+      //     }
+      //   };
+
+      //   recognition.onerror = (e) => console.error("Speech error:", e.error);
+      //   recognition.onend = () => recognition.start(); // auto restart
+
+      //   recognition.start();
+      // } else {
+      //   console.warn("SpeechRecognition not supported in this browser.");
+      // }
+
+      // 🎤 --- Voice Recognition for "hello"
+      window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (window.SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+
+        let cachedVoices = [];
+
+        // ✅ Load and cache voices
+        function loadVoices() {
+          const voices = speechSynthesis.getVoices();
+          if (voices.length > 0) {
+            cachedVoices = voices;
+            console.log(
+              "✅ Voices loaded:",
+              voices.map((v) => `${v.name} (${v.lang})`)
+            );
+          } else {
+            console.warn("⚠️ Voices list is empty, waiting for onvoiceschanged...");
+          }
+        }
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+          console.log("Heard:", transcript);
+
+          if (transcript.includes("hello")) {
+            // 🎉 Blast all over the screen
+            for (let i = 0; i < 8; i++) {
+              const x = rand(100, window.innerWidth - 100);
+              const y = rand(100, window.innerHeight - 100);
+              confettiBlast(x, y, 60);
+            }
+
+            changePandaReplyText();
+
+            // 🎙️ Panda speaks with child-like voice
+            const utterance = new SpeechSynthesisUtterance(reply);
+            utterance.pitch = 2; // higher pitch → babyish
+            utterance.rate = 0.7; // slower → cuter
+            utterance.volume = 1;
+            utterance.lang = "en-US";
+
+            if (cachedVoices.length > 0) {
+              let babyVoice =
+                cachedVoices.find((v) => /child|baby/i.test(v.name)) ||
+                cachedVoices.find((v) => /girl|female/i.test(v.name)) ||
+                cachedVoices.find((v) => v.lang === "en-US");
+
+              if (babyVoice) {
+                utterance.voice = babyVoice;
+                console.log("🎙️ Using voice:", babyVoice.name, babyVoice.lang);
+              } else {
+                console.warn("⚠️ No baby-like voice found, using default.");
+              }
+            } else {
+              console.error("❌ No voices available for speech synthesis yet.");
+            }
+
+            utterance.onstart = () => console.log("🔊 Speech started");
+            utterance.onend = () => console.log("✅ Speech ended");
+            utterance.onerror = (e) => console.error("❌ Speech synthesis error:", e.error);
+
+            speechSynthesis.cancel(); // stop ongoing speech
+            speechSynthesis.speak(utterance);
+          }
+        };
+
+        recognition.onerror = (e) => console.error("Speech error:", e.error);
+        recognition.onend = () => recognition.start(); // auto restart
+
+        recognition.start();
+      } else {
+        console.warn("SpeechRecognition not supported in this browser.");
+      }
+
+      // Existing click + auto-blast code...
+      // setInterval(() => {
+      //   for (let i = 0; i < 6; i++) {
+      //     const x = rand(100, window.innerWidth - 100);
+      //     const y = rand(100, window.innerHeight - 100);
+      //     confettiBlast(x, y, 50);
+      //   }
+      // }, 4000);
+
+      window.addEventListener("click", (e) => {
+        confettiBlast(e.clientX, e.clientY);
+      });
+
+      document.getElementById("blastBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const rect = e.target.getBoundingClientRect();
+        confettiBlast(rect.left + rect.width / 2, rect.top);
+        changePandaReplyText();
+      });
+    </script>
+  </body>
+</html>
